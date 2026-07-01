@@ -2,7 +2,20 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import sqlite3
 
-# --- FUNCIONES DE LÓGICA ---
+def validar_registro_v1(nombre, mes):
+    """Versión 1: Validación básica. Solo mira que no sea vacío."""
+    return nombre != "" and mes != ""
+
+def validar_registro_v2(nombre, mes):
+    """Versión 2: Evolución. Si el usuario ingresa solo espacios ("   "), lo detecta y da falso."""
+    return nombre.strip() != "" and mes.strip() != ""
+
+def validar_registro_v3(nombre, mes):
+    """Versión 3: Consolidada. Además de limpiar espacios, evita nombres demasiado cortos (mínimo 3 letras)."""
+    if len(nombre.strip()) < 3:
+        return False
+    return nombre.strip() != "" and mes.strip() != ""
+
 def cargar_datos_en_tabla():
     # Limpiar tabla antes de recargar
     for item in tabla.get_children():
@@ -21,8 +34,8 @@ def guardar_cliente():
     mes = entry_mes.get()
     pagado = 1 if var_pago.get() else 0
     
-    if nombre == "" or mes == "":
-        messagebox.showwarning("Atención", "Por favor completa todos los campos")
+    if not validar_registro_v3(nombre, mes):
+        messagebox.showwarning("Atención", "Por favor completa todos los campos con datos válidos")
         return
 
     conexion = sqlite3.connect('clientes_isp.db')
@@ -36,33 +49,35 @@ def guardar_cliente():
     cargar_datos_en_tabla()
     messagebox.showinfo("Éxito", f"Cliente {nombre} guardado")
 
-# --- INTERFAZ GRÁFICA ---
-root = tk.Tk()
-root.title("Gestión ISP Familiar")
-root.geometry("500x500")
 
-# Entradas de texto
-tk.Label(root, text="Nombre del Cliente:").pack(pady=5)
-entry_nombre = tk.Entry(root)
-entry_nombre.pack()
+if __name__ == "__main__":
+    # --- INTERFAZ GRÁFICA ---
+    root = tk.Tk()
+    root.title("Gestión ISP Familiar")
+    root.geometry("500x500")
 
-tk.Label(root, text="Mes de Pago:").pack(pady=5)
-entry_mes = tk.Entry(root)
-entry_mes.pack()
+    # Entradas de texto
+    tk.Label(root, text="Nombre del Cliente:").pack(pady=5)
+    entry_nombre = tk.Entry(root)
+    entry_nombre.pack()
 
-var_pago = tk.BooleanVar()
-tk.Checkbutton(root, text="¿Pago realizado?", variable=var_pago).pack(pady=10)
+    tk.Label(root, text="Mes de Pago:").pack(pady=5)
+    entry_mes = tk.Entry(root)
+    entry_mes.pack()
 
-tk.Button(root, text="Guardar Registro", command=guardar_cliente, bg="green", fg="white").pack(pady=10)
+    var_pago = tk.BooleanVar()
+    tk.Checkbutton(root, text="¿Pago realizado?", variable=var_pago).pack(pady=10)
 
-# Tabla visual
-columnas = ("Nombre", "Mes", "Estado")
-tabla = ttk.Treeview(root, columns=columnas, show="headings")
-for col in columnas:
-    tabla.heading(col, text=col)
-    tabla.column(col, width=100)
-tabla.pack(pady=20, fill="both", expand=True)
+    tk.Button(root, text="Guardar Registro", command=guardar_cliente, bg="green", fg="white").pack(pady=10)
 
-cargar_datos_en_tabla() # Cargar lo que ya existe al abrir
+    # Tabla visual
+    columnas = ("Nombre", "Mes", "Estado")
+    tabla = ttk.Treeview(root, columns=columnas, show="headings")
+    for col in columnas:
+        tabla.heading(col, text=col)
+        tabla.column(col, width=100)
+    tabla.pack(pady=20, fill="both", expand=True)
 
-root.mainloop()
+    cargar_datos_en_tabla() # Cargar lo que ya existe al abrir
+
+    root.mainloop()
